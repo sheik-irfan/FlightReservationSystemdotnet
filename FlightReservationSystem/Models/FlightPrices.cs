@@ -1,17 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class FlightPrices
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("FLIGHT_PRICES")]
+    public class FlightPrices
+    {
+        [Key]
+        public decimal Id { get; set; }  // decimal for sequence matching
 
-    public decimal FlightId { get; set; }
+        public decimal FlightId { get; set; }
 
-    public string FlightClass { get; set; } = null!;
+        [Required]
+        [MaxLength(50)]
+        public string FlightClass { get; set; } = null!;
 
-    public decimal Price { get; set; }
+        public decimal Price { get; set; }
 
-    public virtual Flights Flight { get; set; } = null!;
+        [ForeignKey("FlightId")]
+        public virtual Flights Flight { get; set; } = null!;
+    }
 }

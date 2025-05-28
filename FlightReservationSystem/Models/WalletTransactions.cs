@@ -1,21 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class WalletTransactions
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("WALLET_TRANSACTIONS")]
+    public class WalletTransaction
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("ID")]
+        public decimal Id { get; set; }
 
-    public decimal WalletId { get; set; }
+        [Column("WALLET_ID")]
+        public decimal WalletId { get; set; }
 
-    public string TransactionType { get; set; } = null!;
+        [Column("AMOUNT")]
+        public decimal Amount { get; set; }
 
-    public decimal Amount { get; set; }
+        // Removed: Description property – the WALLET_TRANSACTIONS table does not have a DESCRIPTION column.
+        // [Column("DESCRIPTION")]
+        // public string Description { get; set; } = string.Empty;
 
-    public DateTime? TransactionTime { get; set; }
+        // Allowed values: 'COMPLETED', 'PENDING', 'FAILED', 'CANCELLED'
+        [Column("STATUS")]
+        public string Status { get; set; } = string.Empty;
 
-    public string? Status { get; set; }
+        [Column("TRANSACTION_TIME")]
+        public DateTime CreatedAt { get; set; }
 
-    public virtual Wallets Wallet { get; set; } = null!;
+        [Column("TRANSACTION_TYPE")]
+        public string TransactionType { get; set; } = string.Empty;
+    }
 }

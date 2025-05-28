@@ -1,12 +1,11 @@
+using FlightReservationSystem.Models;
 using FlightReservationSystem.Configs;
 using FlightReservationSystem.Mappers;
 using FlightReservationSystem.Middlewares;
-using FlightReservationSystem.Models;
 using FlightReservationSystem.Repositories;
 using FlightReservationSystem.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -14,33 +13,69 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
+// ------------------------------------------
+// Serilog Logging
+// ------------------------------------------
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
     .Enrich.FromLogContext()
     .CreateLogger();
-
 builder.Host.UseSerilog();
 
-// Add DbContext with Oracle connection string from appsettings.json
-builder.Services.AddDbContext<MyDbContext>(options =>
+// ------------------------------------------
+// Database Context
+// ------------------------------------------
+builder.Services.AddDbContext<FlightReservation>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register AutoMapper profiles
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+// ------------------------------------------
+// CORS Configuration
+// -----------------------------------------
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 
-// Register repositories and services
+// ------------------------------------------
+// AutoMapper Configuration
+// ------------------------------------------
+builder.Services.AddAutoMapper(typeof(MappingProfile)); // Register mapping profiles
+
+// ------------------------------------------
+// Dependency Injection - Repositories
+// ------------------------------------------
+builder.Services.AddScoped<IAirportRepository, AirportRepository>();
 builder.Services.AddScoped<IAirplaneRepository, AirplaneRepository>();
+builder.Services.AddScoped<IFlightRepository, FlightRepository>();
+builder.Services.AddScoped<IFlightPriceRepository, FlightPriceRepository>();
+builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+// Register the Reviews Repository
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+
+// ------------------------------------------
+// Dependency Injection - Services
+// ------------------------------------------
+builder.Services.AddScoped<IAirportService, AirportService>();
 builder.Services.AddScoped<IAirplaneService, AirplaneService>();
-
-// Register UserService and JWT config
+builder.Services.AddScoped<IFlightService, FlightService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+// Register the Reviews Service
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
+// ------------------------------------------
+// JWT Authentication
+// ------------------------------------------
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+    ?? throw new InvalidOperationException("JwtSettings configuration is missing or invalid.");
 
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
 
-// Add JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,6 +83,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -56,62 +93,69 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+        IssuerSigningKey = key,
         ClockSkew = TimeSpan.Zero
     };
 });
 
-// Add controllers
+// ------------------------------------------
+// Swagger Configuration with JWT
+// ------------------------------------------
 builder.Services.AddControllers();
-
-// Add Swagger/OpenAPI services
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FlightReservation API", Version = "v1" });
-    // Optional: Add JWT support to Swagger UI
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your valid token."
+        Title = "Flight Reservation System API",
+        Version = "v1",
+        Description = "Manage flights, reservations, airplanes, users, reviews, and more."
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Enter: Bearer {your JWT token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
                 Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
-            new string[] { }
+            System.Array.Empty<string>()
         }
     });
 });
 
+// ------------------------------------------
+// Build the App
+// ------------------------------------------
 var app = builder.Build();
 
-// Use global exception handler middleware
-//app.UseMiddleware<GlobalExceptionMiddleware>();
+// Use Global Exception Handler Middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
-// Configure middleware
+// Enable Swagger in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlightReservation API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Flight Reservation System API v1");
         c.RoutePrefix = string.Empty;
     });
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication(); // <-- IMPORTANT: Authentication must come before Authorization
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
+app.UseCors("AllowAll");
 
 app.Run();

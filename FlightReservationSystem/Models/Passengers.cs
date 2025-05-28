@@ -1,23 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class Passengers
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("PASSENGERS")]
+    public class Passengers
+    {
+        [Key]
+        [Column("ID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public decimal Id { get; set; }
 
-    public string FirstName { get; set; } = null!;
+        [Column("BOOKING_ID")]
+        public decimal BookingId { get; set; }
 
-    public string LastName { get; set; } = null!;
+        [Column("FIRST_NAME")]
+        public string FirstName { get; set; } = string.Empty;
 
-    public string Gender { get; set; } = null!;
+        [Column("LAST_NAME")]
+        public string LastName { get; set; } = string.Empty;
 
-    public decimal Age { get; set; }
+        [Column("GENDER")]
+        public string Gender { get; set; } = string.Empty;
 
-    public decimal BookingId { get; set; }
+        [Column("AGE")]
+        public int Age { get; set; }
 
-    public virtual Bookings Booking { get; set; } = null!;
-
-    public virtual ICollection<BookedTickets> BookedTickets { get; set; } = new List<BookedTickets>();
+        [Column("AADHAAR_NUMBER")]
+        public string AadhaarNumber { get; set; } = string.Empty;
+    }
 }

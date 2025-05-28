@@ -1,25 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class BookedTickets
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("BOOKED_TICKETS")]
+    public class BookedTickets
+    {
+        [Key]
+        [Column("ID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public decimal Id { get; set; }
 
-    public decimal BookingId { get; set; }
+        [Column("BOOKING_ID")]
+        public decimal BookingId { get; set; }
 
-    public decimal PassengerId { get; set; }
+        [Column("PASSENGER_ID")]
+        public decimal PassengerId { get; set; }
 
-    public string FlightClass { get; set; } = null!;
+        [Column("FLIGHT_CLASS")]
+        public string FlightClass { get; set; } = string.Empty;
 
-    public decimal Price { get; set; }
+        [Column("PRICE")]
+        public decimal Price { get; set; }
 
-    public string? Status { get; set; }
+        [Column("STATUS")]
+        public string Status { get; set; } = string.Empty;
 
-    public DateTime? CancellationTime { get; set; }
-
-    public virtual Bookings Booking { get; set; } = null!;
-
-    public virtual Passengers Passenger { get; set; } = null!;
+        [Column("CANCELLATION_TIME")]
+        public DateTime? CancellationTime { get; set; }
+    }
 }

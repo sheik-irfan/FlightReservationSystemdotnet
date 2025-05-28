@@ -1,17 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class Wallets
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("WALLETS")]
+    public class Wallets
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("ID")]
+        public decimal Id { get; set; }
 
-    public decimal UserId { get; set; }
+        [Column("USER_ID")]
+        public decimal UserId { get; set; }
 
-    public decimal? Balance { get; set; }
-
-    public virtual Users User { get; set; } = null!;
-
-    public virtual ICollection<WalletTransactions> WalletTransactions { get; set; } = new List<WalletTransactions>();
+        [Column("BALANCE")]
+        public decimal? Balance { get; set; }
+    }
 }

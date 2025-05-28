@@ -1,65 +1,98 @@
-﻿using FlightReservationSystem.Models;
+﻿using FlightReservationSystem.Configs;
+using FlightReservationSystem.Models;
 using FlightReservationSystem.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace FlightReservationSystem.Services;
-
-public class UserService : IUserService
+namespace FlightReservationSystem.Services
 {
-    private readonly MyDbContext _context;
-
-    public UserService(MyDbContext context)
+    public class UserService : IUserService
     {
-        _context = context;
-    }
+        private readonly FlightReservation _context;
+        private readonly JwtSettings _jwtSettings;
+        private readonly IWalletService _walletService;
 
-    public async Task<bool> UserExistsAsync(string email)
-    {
-        return await _context.Users.AnyAsync(u => u.Email == email);
-    }
-
-    public async Task<Users> CreateUserAsync(RegisterDto dto)
-    {
-        var user = new Users
+        public UserService(FlightReservation context, IOptions<JwtSettings> jwtOptions, IWalletService walletService)
         {
-            Name = dto.Name,
-            Email = dto.Email,
-            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Role = string.IsNullOrWhiteSpace(dto.Role) ? "CUSTOMER" : dto.Role,
-            Gender = dto.Gender,
-            CreatedAt = DateTime.UtcNow,
-            MobileNumber = dto.MobileNumber,
-            DateOfBirth = dto.DateOfBirth
-        };
+            _context = context;
+            _jwtSettings = jwtOptions.Value;
+            _walletService = walletService;
+        }
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        public async Task<bool> RegisterAsync(RegisterDto dto)
+        {
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+                return false; // Email already exists
 
-        return user;
-    }
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+            var user = new Users
+            {
+                Name = dto.Name,
+                Email = dto.Email,
+                Password = hashedPassword,
+                Role = dto.Role.ToUpper(),
+                Gender = dto.Gender,
+                MobileNumber = dto.MobileNumber,
+                Dob = dto.Dob,
+                CreatedAt = DateTime.UtcNow
+            };
 
-    public async Task<Users?> ValidateUserAsync(string email, string password)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user == null)
-            return null;
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-        var hashedPassword = HashPassword(password);
-        if (user.Password != hashedPassword)
-            return null;
+            // ✅ Create wallet ONLY for USER role
+            if (user.Role == "USER")
+            {
+                await _walletService.CreateWalletForUserAsync(user.Id);
+            }
 
-        return user;
-    }
+            return true;
+        }
 
-    private string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        var bytes = Encoding.UTF8.GetBytes(password);
-        var hash = sha256.ComputeHash(bytes);
-        return Convert.ToBase64String(hash);
+        public async Task<AuthenticationResponseDto?> AuthenticateAsync(AuthenticationRequestDto dto)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
+                return null;
+
+            var token = GenerateJwtToken(user);
+
+            return new AuthenticationResponseDto
+            {
+                Email = user.Email,
+                Role = user.Role,
+                Token = token
+            };
+        }
+
+        private string GenerateJwtToken(Users user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
     }
 }

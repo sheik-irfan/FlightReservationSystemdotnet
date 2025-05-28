@@ -32,14 +32,21 @@ public class GlobalExceptionMiddleware
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
 
+            // Extract inner exception details
+            var innerMessage = ex.InnerException?.Message;
+            var innerStack = ex.InnerException?.StackTrace;
+
             object response;
+
             if (_env.IsDevelopment())
             {
                 response = new
                 {
                     StatusCode = context.Response.StatusCode,
                     Message = ex.Message,
-                    StackTrace = ex.StackTrace
+                    InnerMessage = innerMessage,
+                    StackTrace = ex.StackTrace,
+                    InnerStackTrace = innerStack
                 };
             }
             else

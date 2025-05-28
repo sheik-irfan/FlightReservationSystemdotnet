@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class Airplanes
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("AIRPLANES")]
+    public class Airplanes
+    {
+        [Key]
+        public decimal Id { get; set; }  // decimal to match FK in Flights
 
-    public string AirplaneNumber { get; set; } = null!;
+        public string AirplaneNumber { get; set; } = null!;
+        public string Model { get; set; } = null!;
+        public int TotalSeats { get; set; }
+        public int EconomySeats { get; set; }
+        public int BusinessSeats { get; set; }
 
-    public string Model { get; set; } = null!;
-
-    public decimal TotalSeats { get; set; }
-
-    public decimal EconomySeats { get; set; }
-
-    public decimal BusinessSeats { get; set; }
-
-    public virtual ICollection<Flights> Flights { get; set; } = new List<Flights>();
+        // Add this navigation property:
+        public virtual ICollection<Flights> Flights { get; set; } = new List<Flights>();
+    }
 }

@@ -1,13 +1,13 @@
-﻿using FlightReservationSystem.Models.DTOs;
+﻿using FlightReservationSystem.DTOs;
 
 namespace FlightReservationSystem.Services
 {
     public interface IAirplaneService
     {
-        Task<IEnumerable<AirplaneDto>> GetAllAirplanesAsync();
-        Task<AirplaneDto?> GetAirplaneByIdAsync(decimal id);
-        Task<AirplaneDto> CreateAirplaneAsync(AirplaneDto airplaneDto);
-        Task<bool> UpdateAirplaneAsync(decimal id, AirplaneDto airplaneDto);
-        Task<bool> DeleteAirplaneAsync(decimal id);
+        Task<List<AirplaneDto>> GetAllAsync();
+        Task<AirplaneDto?> GetByIdAsync(decimal id);
+        Task<AirplaneDto> CreateAsync(AirplaneCreateDto dto);
+        Task<bool> UpdateAsync(decimal id, AirplaneUpdateDto dto);
+        Task<bool> DeleteAsync(decimal id);
     }
 }

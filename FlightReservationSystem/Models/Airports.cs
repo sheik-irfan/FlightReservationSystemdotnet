@@ -1,21 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlightReservationSystem.Models;
-
-public partial class Airports
+namespace FlightReservationSystem.Models
 {
-    public decimal Id { get; set; }
+    [Table("AIRPORTS")]
+    public class Airports
+    {
+        [Key]
+        public decimal Id { get; set; }  // decimal for sequence matching
 
-    public string Name { get; set; } = null!;
+        [Required]
+        [MaxLength(150)]
+        public string Name { get; set; } = null!;
 
-    public string City { get; set; } = null!;
+        [Required]
+        [MaxLength(100)]
+        public string City { get; set; } = null!;
 
-    public string Country { get; set; } = null!;
+        [Required]
+        [MaxLength(100)]
+        public string Country { get; set; } = null!;
 
-    public string AirportCode { get; set; } = null!;
-
-    public virtual ICollection<Flights> FlightsDestinationAirport { get; set; } = new List<Flights>();
-
-    public virtual ICollection<Flights> FlightsSourceAirport { get; set; } = new List<Flights>();
+        [Required]
+        [MaxLength(3)]
+        [Column(TypeName = "CHAR(3)")]
+        public string AirportCode { get; set; } = null!;
+    }
 }

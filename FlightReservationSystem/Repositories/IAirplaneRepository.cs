@@ -4,11 +4,10 @@ namespace FlightReservationSystem.Repositories
 {
     public interface IAirplaneRepository
     {
-        Task<IEnumerable<Airplanes>> GetAllAsync();
+        Task<List<Airplanes>> GetAllAsync();
         Task<Airplanes?> GetByIdAsync(decimal id);
-        Task AddAsync(Airplanes airplane);
-        void Update(Airplanes airplane);
-        void Delete(Airplanes airplane);
-        Task SaveChangesAsync();
+        Task<Airplanes> CreateAsync(Airplanes airplane);
+        Task<bool> UpdateAsync(Airplanes airplane);
+        Task<bool> DeleteAsync(decimal id);
     }
 }
