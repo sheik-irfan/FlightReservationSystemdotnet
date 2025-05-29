@@ -7,9 +7,9 @@ namespace FlightReservationSystem.Repositories
     public interface IReviewRepository
     {
         Task<IEnumerable<Review>> GetAllAsync();
-        Task<IEnumerable<Review>> GetByUserIdAsync(decimal userId);
-        Task<Review?> GetByIdAsync(decimal id);
-        Task<Review> AddAsync(Review review);
+        Task<IEnumerable<Review>> GetByUserEmailAsync(string userEmail);
+        Task<Review> GetByIdAsync(decimal id);
+        Task<Review> AddReviewAsync(Review review);
         Task UpdateAsync(Review review);
         Task DeleteAsync(Review review);
     }

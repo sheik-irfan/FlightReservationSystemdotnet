@@ -19,18 +19,19 @@ namespace FlightReservationSystem.Services
             _mapper = mapper;
         }
 
-        public async Task<ReviewDto> CreateReviewAsync(CreateReviewDto dto)
+        public async Task<ReviewDto> CreateReviewAsync(CreateReviewDto dto, string userEmail)
         {
             var review = _mapper.Map<Review>(dto);
-            review.CreatedAt = DateTime.UtcNow; // Set creation time
-            review = await _repository.AddAsync(review);
+            review.UserEmail = userEmail;
+            review.CreatedAt = DateTime.UtcNow;
+            review = await _repository.AddReviewAsync(review);  // Corrected method name
             return _mapper.Map<ReviewDto>(review);
         }
 
-        public async Task<bool> DeleteReviewAsync(decimal id, decimal userId)
+        public async Task<bool> DeleteReviewAsync(decimal id, string userEmail)
         {
             var review = await _repository.GetByIdAsync(id);
-            if (review == null || review.UserId != userId)
+            if (review == null || review.UserEmail != userEmail)
                 return false;
 
             await _repository.DeleteAsync(review);
@@ -49,19 +50,18 @@ namespace FlightReservationSystem.Services
             return review == null ? null : _mapper.Map<ReviewDto>(review);
         }
 
-        public async Task<IEnumerable<ReviewDto>> GetByUserIdAsync(decimal userId)
+        public async Task<IEnumerable<ReviewDto>> GetByUserEmailAsync(string userEmail)
         {
-            var reviews = await _repository.GetByUserIdAsync(userId);
+            var reviews = await _repository.GetByUserEmailAsync(userEmail);
             return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
         }
 
-        public async Task<bool> UpdateReviewAsync(decimal id, ReviewDto dto, decimal userId)
+        public async Task<bool> UpdateReviewAsync(decimal id, ReviewDto dto, string userEmail)
         {
             var review = await _repository.GetByIdAsync(id);
-            if (review == null || review.UserId != userId)
+            if (review == null || review.UserEmail != userEmail)
                 return false;
 
-            // Update only allowed fields (BookingId, Rating, ReviewComment)
             review.BookingId = dto.BookingId;
             review.Rating = dto.Rating;
             review.ReviewComment = dto.ReviewComment;

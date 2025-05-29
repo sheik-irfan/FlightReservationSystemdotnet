@@ -15,17 +15,23 @@ namespace FlightReservationSystem.Models
         [Column("USER_ID")]
         public decimal UserId { get; set; }
 
+        [ForeignKey("UserId")]
+        public virtual Users User { get; set; } = null!;
+
         [Column("BOOKING_ID")]
         public decimal BookingId { get; set; }
 
         [Column("RATING")]
         public decimal Rating { get; set; }
 
-        // We name this column REVIEW_COMMENT rather than COMMENT since COMMENT is reserved.
         [Column("REVIEW_COMMENT")]
         public string? ReviewComment { get; set; }
 
         [Column("CREATED_AT")]
         public DateTime CreatedAt { get; set; }
+
+        [Column("USER_EMAIL")]
+        [MaxLength(255)]
+        public string? UserEmail { get; set; }
     }
 }

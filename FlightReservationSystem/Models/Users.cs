@@ -1,27 +1,63 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FlightReservationSystem.Models
 {
+    [Table("USERS")]
     public partial class Users
     {
-        public decimal Id { get; set; }  // Matches Oracle sequence (decimal)
+        public Users()
+        {
+            Bookings = new HashSet<Bookings>();
+        }
 
-        public string Name { get; set; } = null!;  // Max 100 chars in DB, consider validation in DTO or UI
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("ID")]
+        public decimal Id { get; set; }
 
-        public string Email { get; set; } = null!; // Max 100 chars, unique constraint assumed
+        [Required]
+        [MaxLength(100)]
+        [Column("NAME")]
+        public string Name { get; set; } = null!;
 
-        public string Password { get; set; } = null!; // Hashed password, max 100 chars
+        [Required]
+        [MaxLength(100)]
+        [Column("EMAIL")]
+        public string Email { get; set; } = null!;
 
-        public string Role { get; set; } = null!;  // Max 10 chars, e.g. "CUSTOMER", "ADMIN"
+        [Required]
+        [MaxLength(100)]
+        [Column("PASSWORD")]
+        public string Password { get; set; } = null!;
 
-        public string Gender { get; set; } = null!; // Single char, e.g. "M" or "F"
+        [Required]
+        [MaxLength(10)]
+        [Column("ROLE")]
+        public string Role { get; set; } = null!;
 
-        public string MobileNumber { get; set; } = null!; // Max 15 chars
+        [Required]
+        [MaxLength(1)]
+        [Column("GENDER")]
+        public string Gender { get; set; } = null!;
 
+        [Required]
+        [MaxLength(15)]
+        [Column("MOBILE_NUMBER")]
+        public string MobileNumber { get; set; } = null!;
+
+        [Required]
+        [Column("DOB", TypeName = "DATE")]
         public DateTime Dob { get; set; }
 
-        public DateTime? CreatedAt { get; set; }  // Nullable in DB, set on insert
+        [Column("CREATED_AT", TypeName = "TIMESTAMP")]
+        public DateTime? CreatedAt { get; set; }
 
-        // Optional: You can add validation methods here or use FluentValidation elsewhere.
+        // Navigation property for related bookings
+        public virtual ICollection<Bookings> Bookings { get; set; }
+        public virtual ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
+
     }
 }

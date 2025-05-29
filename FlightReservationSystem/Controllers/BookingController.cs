@@ -46,7 +46,6 @@ namespace FlightReservationSystem.Controllers
             return Ok("Booking cancelled and refund processed.");
         }
 
-        // New endpoint: Confirm a booking.
         [HttpPost("confirm/{bookingId}")]
         public async Task<IActionResult> ConfirmBooking(decimal bookingId)
         {
@@ -61,12 +60,12 @@ namespace FlightReservationSystem.Controllers
             return Ok("Booking confirmed.");
         }
 
-        // New endpoint: Get bookings for a specific user.
-        [HttpGet("mybookings/{userId}")]
-        public async Task<IActionResult> GetBookingsByUser(decimal userId)
+        // ✅ Updated: Get bookings for a specific user by email
+        [HttpGet("mybookings")]
+        public async Task<IActionResult> GetBookingsByUserEmail([FromQuery] string email)
         {
-            System.Console.WriteLine($"[Controller] Retrieving bookings for user ID: {userId}");
-            List<Bookings> bookings = await _bookingService.GetBookingsByUserAsync(userId);
+            System.Console.WriteLine($"[Controller] Retrieving bookings for user email: {email}");
+            List<Bookings> bookings = await _bookingService.GetBookingsByUserEmailAsync(email);
             if (bookings == null || bookings.Count == 0)
             {
                 return NotFound("No bookings found for this user.");
@@ -74,7 +73,6 @@ namespace FlightReservationSystem.Controllers
             return Ok(bookings);
         }
 
-        // New endpoint: Get all bookings (admin view).
         [HttpGet("all")]
         public async Task<IActionResult> GetAllBookings()
         {

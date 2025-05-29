@@ -44,13 +44,11 @@ namespace FlightReservationSystem.Mappers
             CreateMap<BookedTickets, TicketDto>().ReverseMap();
 
             // reviews 
-            
+
+            CreateMap<CreateReviewDto, Review>();
             CreateMap<Review, ReviewDto>();
             CreateMap<ReviewDto, Review>();
-            CreateMap<CreateReviewDto, Review>()
-                    // Set CreatedAt explicitly in the service; ignore here.
-                    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
-            
+
         }
     }
 }

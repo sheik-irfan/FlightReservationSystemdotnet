@@ -1,76 +1,128 @@
-﻿using FlightReservationSystem.DTOs;
-using FlightReservationSystem.Services;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using FlightReservationSystem.DTOs;
+using FlightReservationSystem.Models;
+using FlightReservationSystem.Repositories;
 
 namespace FlightReservationSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ReviewController : ControllerBase
     {
-        private readonly IReviewService _reviewService;
+        private readonly IReviewRepository _reviewRepository;
 
-        public ReviewController(IReviewService reviewService)
+        public ReviewController(IReviewRepository reviewRepository)
         {
-            _reviewService = reviewService;
+            _reviewRepository = reviewRepository;
         }
 
-        // GET: api/Review/user/{userId}
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetReviewsByUser(decimal userId)
-        {
-            // In a production environment, extract userId from User.Claims
-            var reviews = await _reviewService.GetByUserIdAsync(userId);
-            return Ok(reviews);
-        }
-
-        // GET: api/Review/all (Admin only)
+        // ✅ Admin can view all reviews
         [HttpGet("all")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAllReviews()
         {
-            var reviews = await _reviewService.GetAllAsync();
-            return Ok(reviews);
+            var reviews = await _reviewRepository.GetAllAsync();
+
+            var reviewDtos = reviews.Select(r => new ReviewDto
+            {
+                Id = r.Id,
+                UserEmail = r.UserEmail ?? "Unknown",
+                BookingId = r.BookingId,
+                Rating = r.Rating,
+                ReviewComment = r.ReviewComment,
+                CreatedAt = r.CreatedAt
+            });
+
+            return Ok(reviewDtos);
         }
 
-        // GET: api/Review/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetReview(decimal id)
+        // ✅ Authenticated user gets all their own reviews
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetOwnReviews()
         {
-            var review = await _reviewService.GetByIdAsync(id);
-            if (review == null)
-                return NotFound();
-            return Ok(review);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(userEmail))
+                return Unauthorized("User email claim not found.");
+
+            var reviews = await _reviewRepository.GetByUserEmailAsync(userEmail);
+
+            var reviewDtos = reviews.Select(r => new ReviewDto
+            {
+                Id = r.Id,
+                UserEmail = r.UserEmail ?? "Unknown",
+                BookingId = r.BookingId,
+                Rating = r.Rating,
+                ReviewComment = r.ReviewComment,
+                CreatedAt = r.CreatedAt
+            });
+
+            return Ok(reviewDtos);
         }
 
-        // POST: api/Review
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
         {
-            var review = await _reviewService.CreateReviewAsync(dto);
-            return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(userEmail))
+                return Unauthorized("User email claim not found.");
+
+            var review = new Review
+            {
+                BookingId = dto.BookingId,
+                Rating = dto.Rating,
+                ReviewComment = dto.ReviewComment,
+                UserEmail = userEmail,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _reviewRepository.AddReviewAsync(review);
+
+            return CreatedAtAction(nameof(GetOwnReviews), new { }, review);
         }
 
-        // PUT: api/Review/{id}
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateReview(decimal id, [FromBody] ReviewDto dto)
         {
-            // In production, extract user id from User.Claims instead of dto.UserId.
-            if (!await _reviewService.UpdateReviewAsync(id, dto, dto.UserId))
-                return BadRequest("Review update failed. Permission denied or review does not exist.");
+            var review = await _reviewRepository.GetByIdAsync(id);
+            if (review == null)
+                return NotFound();
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (review.UserEmail != userEmail)
+                return Forbid();
+
+            review.Rating = dto.Rating;
+            review.ReviewComment = dto.ReviewComment;
+            review.BookingId = dto.BookingId;
+
+            await _reviewRepository.UpdateAsync(review);
             return NoContent();
         }
 
-        // DELETE: api/Review/{id}?userId=xxx
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReview(decimal id, [FromQuery] decimal userId)
+        [Authorize]
+        public async Task<IActionResult> DeleteReview(decimal id)
         {
-            if (!await _reviewService.DeleteReviewAsync(id, userId))
-                return BadRequest("Review deletion failed. Permission denied or review does not exist.");
+            var review = await _reviewRepository.GetByIdAsync(id);
+            if (review == null)
+                return NotFound();
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (review.UserEmail != userEmail)
+                return Forbid();
+
+            await _reviewRepository.DeleteAsync(review);
             return NoContent();
         }
     }

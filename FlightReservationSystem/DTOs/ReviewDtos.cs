@@ -2,21 +2,19 @@
 
 namespace FlightReservationSystem.DTOs
 {
-    // Used for retrieving and updating reviews.
     public class ReviewDto
     {
         public decimal Id { get; set; }
-        public decimal UserId { get; set; }
+        public string UserEmail { get; set; } = null!;
         public decimal BookingId { get; set; }
         public decimal Rating { get; set; }
         public string? ReviewComment { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
-    // Used for creating a new review.
     public class CreateReviewDto
     {
-        public decimal UserId { get; set; }
+        // UserEmail is NOT here because we get it from authenticated user
         public decimal BookingId { get; set; }
         public decimal Rating { get; set; }
         public string? ReviewComment { get; set; }

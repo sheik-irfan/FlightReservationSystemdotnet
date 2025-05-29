@@ -26,5 +26,11 @@ namespace FlightReservationSystem.Models
 
         [Column("TOTAL_PRICE")]
         public decimal TotalPrice { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual Users User { get; set; }  // <-- Use 'Users' not 'User'
+
+        [NotMapped]
+        public string UserName { get; set; } // For convenience in response
     }
 }

@@ -13,13 +13,10 @@ namespace FlightReservationSystem.Repositories
         Task UpdateBookingAsync(Bookings booking);
         Task<List<BookedTickets>> GetTicketsByBookingIdAsync(decimal bookingId);
         Task UpdateTicketAsync(BookedTickets ticket);
-
-        // Helper methods:
         Task<Passengers?> GetPassengerByAadhaarAsync(string aadhaarNumber);
         Task<BookedTickets?> GetTicketByBookingAndPassengerAsync(decimal bookingId, decimal passengerId);
-
-        // New methods for viewing bookings:
         Task<List<Bookings>> GetBookingsByUserAsync(decimal userId);
         Task<List<Bookings>> GetAllBookingsAsync();
+        Task<List<Bookings>> GetBookingsByUserEmailAsync(string email); 
     }
 }

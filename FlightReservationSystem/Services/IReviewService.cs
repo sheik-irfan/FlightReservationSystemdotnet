@@ -6,11 +6,13 @@ namespace FlightReservationSystem.Services
 {
     public interface IReviewService
     {
-        Task<IEnumerable<ReviewDto>> GetAllAsync(); // Admin view.
-        Task<IEnumerable<ReviewDto>> GetByUserIdAsync(decimal userId); // User's own reviews.
+        // Add userEmail parameter here to match implementation
+        Task<ReviewDto> CreateReviewAsync(CreateReviewDto dto, string userEmail);
+
+        Task<IEnumerable<ReviewDto>> GetAllAsync();
+        Task<IEnumerable<ReviewDto>> GetByUserEmailAsync(string userEmail);
         Task<ReviewDto?> GetByIdAsync(decimal id);
-        Task<ReviewDto> CreateReviewAsync(CreateReviewDto dto);
-        Task<bool> UpdateReviewAsync(decimal id, ReviewDto dto, decimal userId);
-        Task<bool> DeleteReviewAsync(decimal id, decimal userId);
+        Task<bool> UpdateReviewAsync(decimal id, ReviewDto dto, string userEmail);
+        Task<bool> DeleteReviewAsync(decimal id, string userEmail);
     }
 }

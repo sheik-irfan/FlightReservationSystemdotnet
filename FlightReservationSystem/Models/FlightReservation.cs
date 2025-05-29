@@ -311,7 +311,14 @@ namespace FlightReservationSystem.Models
                     .HasColumnType("TIMESTAMP")
                     .HasDefaultValueSql("SYSTIMESTAMP")
                     .IsRequired();
+
+                entity.Property(e => e.UserEmail)
+                    .HasColumnName("USER_EMAIL")
+                    .HasMaxLength(255)
+                    .IsRequired(false);
             });
+
+
 
 
 

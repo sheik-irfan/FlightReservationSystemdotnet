@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightReservationSystem", "FlightReservationSystem\FlightReservationSystem.csproj", "{370A937C-2940-43D4-9A5B-3A22B62DAA27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApiTest", "MyApiTest\MyApiTest.csproj", "{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +29,23 @@ Global
 		{370A937C-2940-43D4-9A5B-3A22B62DAA27}.Release|x64.Build.0 = Release|Any CPU
 		{370A937C-2940-43D4-9A5B-3A22B62DAA27}.Release|x86.ActiveCfg = Release|Any CPU
 		{370A937C-2940-43D4-9A5B-3A22B62DAA27}.Release|x86.Build.0 = Release|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Debug|x64.Build.0 = Debug|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Debug|x86.Build.0 = Debug|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Release|x64.Build.0 = Release|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Release|x86.ActiveCfg = Release|Any CPU
+		{B9041CB1-F5EE-445F-BC7C-06EEA34BE5D4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {520FAB38-A6D8-42ED-B658-E8E9E87B97CC}
 	EndGlobalSection
 EndGlobal
